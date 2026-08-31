@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RedactPro — Confidential File Redaction</title>
+  <meta name="description" content="High-security automated file redaction for images, PDFs, and videos. Detects and permanently redacts sensitive information with zero permanent retention.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+
+  <!-- Fonts: League Spartan -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <img src="assets/logo.png" alt="RedactPro Logo" class="brand-logo-img">
+      </div>
+      <div class="header-status">
+        <span class="status-indicator"></span>
+        <span class="status-text">Confidential Processing Active</span>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="workspace-grid">
+      
+      <!-- Container 1: Upload & Controls -->
+      <section class="panel panel-controls" aria-labelledby="controls-heading">
+        <div class="panel-header">
+          <h2 id="controls-heading" class="panel-title">Source File</h2>
+          <span class="panel-subtitle">Zero data retention</span>
+        </div>
+
+        <!-- Upload Dropzone -->
+        <div 
+          id="dropzone" 
+          class="dropzone" 
+          tabindex="0" 
+          role="button" 
+          aria-label="Upload file for redaction. Drag and drop a file here or press Enter to browse."
+        >
+          <input 
+            type="file" 
+            id="file-input" 
+            class="visually-hidden" 
+            accept=".png,.jpg,.jpeg,.pdf,.mp4,.mov" 
+            tabindex="-1"
+          >
+          
+          <div class="dropzone-idle-content" id="dropzone-idle">
+            <div class="dropzone-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+                <path d="M12 12v9"></path>
+                <path d="m16 16-4-4-4 4"></path>
+              </svg>
+            </div>
+            <p class="dropzone-primary-text">Drop a file here</p>
+            <p class="dropzone-secondary-text">or click to browse</p>
+            <div class="supported-badge">
+              <span>PNG</span> · <span>JPG</span> · <span>PDF</span> · <span>MP4</span> · <span>MOV</span>
+            </div>
+          </div>
+
+          <!-- Dragging Hover State Overlay -->
+          <div class="dropzone-drag-overlay" id="dropzone-drag-overlay" aria-hidden="true">
+            <span class="drag-pulse"></span>
+            <p>Release to prepare for redaction</p>
+          </div>
+        </div>
+
+        <!-- Selected File Metadata Card -->
+        <div id="file-card" class="file-card hidden" aria-live="polite">
+          <div class="file-card-inner">
+            <div class="file-type-badge" id="file-badge">FILE</div>
+            <div class="file-meta">
+              <div class="file-name" id="file-name-display" title="Filename">document.png</div>
+              <div class="file-specs" id="file-specs-display">PNG · 1.2 MB</div>
+            </div>
+            <button 
+              type="button" 
+              id="remove-file-btn" 
+              class="btn-remove" 
+              aria-label="Remove selected file"
+              title="Remove file"
+            >
+              Remove ×
+            </button>
+          </div>
+        </div>
+
+        <!-- Instructions Box (Frontend only) -->
+        <div class="instructions-section">
+          <label for="instructions-input" class="section-label">
+            Additional instructions
+            <span class="label-badge">Optional</span>
+          </label>
+          <textarea 
+            id="instructions-input" 
+            class="instructions-textarea" 
+            placeholder="Describe anything specific you want redacted..."
+            rows="3"
+            aria-describedby="instructions-help"
+          ></textarea>
+          <p id="instructions-help" class="helper-text">
+            Optional. Specific instruction processing will be available in a future version.
+          </p>
+        </div>
+
+        <!-- Action Button -->
+        <div class="action-bar">
+          <button 
+            type="button" 
+            id="redact-btn" 
+            class="btn-primary" 
+            disabled
+          >
+            <span class="btn-text">Redact File</span>
+            <span class="btn-spinner hidden" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <!-- System Security Guarantee Banner -->
+        <div class="security-banner">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Original file is automatically deleted immediately after redaction.</span>
+        </div>
+
+      </section>
+
+      <!-- Container 2: Result / Preview -->
+      <section class="panel panel-preview" aria-labelledby="preview-heading">
+        <div class="panel-header">
+          <h2 id="preview-heading" class="panel-title">Redacted Output</h2>
+          <span class="panel-subtitle" id="preview-status-label">Awaiting input</span>
+        </div>
+
+        <!-- Result Container State Views -->
+        <div class="preview-viewport" id="preview-viewport">
+          
+          <!-- State: IDLE (Empty State) -->
+          <div id="state-idle" class="state-view state-idle">
+            <div class="abstract-mask-graphic" aria-hidden="true">
+              <div class="grid-line line-1"></div>
+              <div class="grid-line line-2"></div>
+              <div class="grid-line line-3"></div>
+              <div class="grid-block block-1"></div>
+              <div class="grid-block block-2"></div>
+            </div>
+            <h3 class="empty-title">Redacted preview</h3>
+            <p class="empty-desc">Your redacted file will appear here once processed.</p>
+          </div>
+
+          <!-- State: PROCESSING (Security Scanning Animation) -->
+          <div id="state-processing" class="state-view state-processing hidden" aria-live="assertive">
+            <div class="scan-frame-wrapper">
+              <div class="scan-frame">
+                <div class="scan-grid"></div>
+                <div class="scan-laser"></div>
+                <div class="scan-sample-blocks" aria-hidden="true">
+                  <div class="sample-row r1"><span class="block"></span><span class="block wide"></span></div>
+                  <div class="sample-row r2"><span class="block wide"></span><span class="block"></span></div>
+                  <div class="sample-row r3"><span class="block"></span><span class="block"></span><span class="block"></span></div>
+                  <div class="sample-row r4"><span class="block wide"></span></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="processing-info">
+              <div class="processing-title" id="processing-stage-text">Processing securely</div>
+              <div class="processing-file" id="processing-filename">analyzing file...</div>
+              
+              <!-- Estimated completion time calculation display -->
+              <div class="estimate-container">
+                <div class="estimate-badge" id="processing-time-estimate">
+                  <span class="estimate-dot"></span>
+                  <span id="estimate-text">Est. completion: calculating...</span>
+                </div>
+                <div class="estimate-countdown" id="estimate-countdown">~2.5s remaining</div>
+              </div>
+
+              <div class="progress-bar-container">
+                <div class="progress-bar-indeterminate" id="progress-bar-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- State: COMPLETED (Preview & Download) -->
+          <div id="state-completed" class="state-view state-completed hidden" aria-live="polite">
+            
+            <div class="completion-header">
+              <div class="success-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Redaction complete</span>
+              </div>
+              <div class="completion-meta" id="completion-meta-stats">
+                Permanent solid redactions applied.
+              </div>
+            </div>
+
+            <!-- Media Preview Area -->
+            <div class="media-container" id="media-container">
+              <!-- Dynamically populated: Image / Video / PDF -->
+            </div>
+
+            <!-- Multi-chunk Video Selector (if split) -->
+            <div id="video-chunks-bar" class="chunks-bar hidden">
+              <label class="chunks-label">Video segments (10s limit):</label>
+              <div class="chunks-list" id="chunks-list"></div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="completion-actions">
+              <a 
+                id="download-btn" 
+                href="#" 
+                class="btn-primary btn-download" 
+                download
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Download Redacted File</span>
+              </a>
+              
+              <button 
+                type="button" 
+                id="reset-btn" 
+                class="btn-secondary"
+              >
+                Redact Another File
+              </button>
+            </div>
+
+          </div>
+
+          <!-- State: ERROR -->
+          <div id="state-error" class="state-view state-error hidden" aria-live="assertive">
+            <div class="error-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <h3 class="error-title">Redaction Failed</h3>
+            <p class="error-message" id="error-message-text">
+              An unexpected error occurred during processing. Your original file has not been retained.
+            </p>
+            <button type="button" id="error-reset-btn" class="btn-secondary">
+              Try Again
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Minimal Footer -->
+    <footer class="app-footer">
+      <div class="footer-left">
+        <span>RedactPro v1.0</span> · <span>RapidOCR Engine</span> · <span>Hardware Accelerated</span>
+      </div>
+      <div class="footer-right">
+        <span>Confidentiality First Architecture</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/upload.js"></script>
+  <script src="js/animation.js"></script>
+  <script src="js/preview.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
