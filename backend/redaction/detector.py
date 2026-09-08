@@ -67,6 +67,7 @@ class DetectionConfig:
         padding_x: int = 5,
         padding_y: int = 4,
         use_rules: bool = True,
+        custom_rules: dict = None,
         iou_threshold: float = 0.30,
         distance_threshold: float = 20.0,
     ):
@@ -76,6 +77,7 @@ class DetectionConfig:
         self.padding_x = padding_x
         self.padding_y = padding_y
         self.use_rules = use_rules
+        self.custom_rules = custom_rules
         self.iou_threshold = iou_threshold
         self.distance_threshold = distance_threshold
 
@@ -162,10 +164,6 @@ def detect_sensitive_regions(
         if not text:
             continue
 
-        # Must contain at least one digit
-        if not contains_number(text):
-            continue
-
         # Confidence threshold
         try:
             score = float(score)
@@ -175,17 +173,26 @@ def detect_sensitive_regions(
         if score < config.min_confidence:
             continue
 
-        # Minimum digit count
-        if digit_count(text) < config.min_digits:
-            continue
-
-        # Rule-based filtering (if enabled)
-        if config.use_rules and not matches_any_rule(text):
-            # If rules are enabled but text doesn't match any rule,
-            # fall back to the basic digit-count filter.
-            # This prevents redacting every single number (like "Page 1").
-            if digit_count(text) < 3:
+        # Rule-based filtering
+        if config.custom_rules is not None:
+            if not matches_any_rule(text, rules=config.custom_rules):
                 continue
+        else:
+            # Must contain at least one digit
+            if not contains_number(text):
+                continue
+
+            # Minimum digit count
+            if digit_count(text) < config.min_digits:
+                continue
+
+            # Rule-based filtering (if enabled)
+            if config.use_rules and not matches_any_rule(text):
+                # If rules are enabled but text doesn't match any rule,
+                # fall back to the basic digit-count filter.
+                # This prevents redacting every single number (like "Page 1").
+                if digit_count(text) < 3:
+                    continue
 
         # Convert polygon to rectangle
         points = np.array(box, dtype=np.float32)

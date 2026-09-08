@@ -98,7 +98,7 @@
         </div>
 
         <!-- Instructions Box (Frontend only) -->
-        <div class="instructions-section">
+        <div id="instructions-section" class="instructions-section">
           <label for="instructions-input" class="section-label">
             Additional instructions
             <span class="label-badge">Optional</span>
@@ -111,8 +111,12 @@
             aria-describedby="instructions-help"
           ></textarea>
           <p id="instructions-help" class="helper-text">
-            Optional. Specific instruction processing will be available in a future version.
+            Optional. Instruct the AI what to redact.
           </p>
+        </div>
+
+        <div id="video-instruction-msg" class="instructions-section hidden">
+          <p style="color: #666; font-style: italic; margin: 0; padding: 12px; background: #f5f5f5; border-radius: 6px; text-align: center;">bring ai to video redaction soon</p>
         </div>
 
         <!-- Action Button -->

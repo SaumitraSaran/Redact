@@ -11,6 +11,8 @@ from .detector import DetectionConfig, get_ocr
 from .image_redactor import redact_image
 from .pdf_redactor import redact_pdf
 from .video_redactor import redact_video, get_video_duration
+from .gemini_helper import get_custom_rules_from_instructions
+
 
 
 logger = logging.getLogger("redactpro")
@@ -101,8 +103,15 @@ def redact_file(
         ValueError: If file_type is unsupported.
         RuntimeError: If processing fails.
     """
-    if instructions:
-        logger.info("Instructions received (processing not yet implemented)")
+    if instructions and file_type != "video":
+        logger.info("Processing custom instructions via Gemini")
+        custom_rules = get_custom_rules_from_instructions(instructions)
+        if custom_rules:
+            if config is None:
+                from .detector import DetectionConfig
+                config = DetectionConfig()
+            config.custom_rules = custom_rules
+            logger.info(f"Custom rules generated: {list(custom_rules.keys())}")
 
     if file_type == "image":
         return redact_image(input_path, output_path, config)

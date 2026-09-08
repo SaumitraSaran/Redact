@@ -29,6 +29,8 @@
         fileSpecsDisplay: document.getElementById('file-specs-display'),
         fileBadge: document.getElementById('file-badge'),
         removeBtn: document.getElementById('remove-file-btn'),
+        instructionsSection: document.getElementById('instructions-section'),
+        videoInstructionMsg: document.getElementById('video-instruction-msg'),
         instructionsInput: document.getElementById('instructions-input'),
         redactBtn: document.getElementById('redact-btn'),
         
@@ -131,6 +133,20 @@
       } else if (newState === State.SELECTED) {
         this.dom.redactBtn.disabled = false;
         this.dom.instructionsInput.disabled = false;
+        
+        // Handle Video vs Image/PDF
+        const file = payload.file;
+        if (file) {
+          const ext = file.name.split('.').pop().toLowerCase();
+          if (ext === 'mp4' || ext === 'mov') {
+            this.dom.instructionsSection.classList.add('hidden');
+            this.dom.videoInstructionMsg.classList.remove('hidden');
+          } else {
+            this.dom.instructionsSection.classList.remove('hidden');
+            this.dom.videoInstructionMsg.classList.add('hidden');
+          }
+        }
+        
         this.animation.stop();
       } else if (newState === State.PROCESSING) {
         this.dom.redactBtn.disabled = true;
@@ -152,7 +168,7 @@
     }
 
     onFileSelected(file) {
-      this.setState(State.SELECTED);
+      this.setState(State.SELECTED, { file: file });
     }
 
     onFileRemoved() {
